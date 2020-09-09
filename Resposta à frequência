@@ -1,0 +1,20 @@
+function [H,f]=Resposta_Frequencia_Hs(Hs,fs,N)
+ //[H,f]=frmag(Hz,N)
+ b=coeff(Hs(2))
+ a=coeff(Hs(3))
+ npolos=length(a)-1
+ nzeros=length(b)-1
+ f=linspace(0,fs,N);
+ w=2*%i*%pi*f;
+ for n=1:N
+    num=0;
+    den=0;
+    for p=0:npolos
+        den=den+a(p+1)*w(n)^p;
+    end
+    for p=0:nzeros
+        num=num+b(p+1)*w(n)^p;
+    end
+    H(n)= num/den;
+ end
+endfunction
