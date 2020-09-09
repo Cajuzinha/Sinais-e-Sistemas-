@@ -1,0 +1,54 @@
+function deconvolv(M)
+clf;
+N=1024;
+x=[zeros(1:200) ones(1:50) zeros(1:100) ones(1:50) zeros(401:N)];
+H1=0.3*sin(30*%pi*(1:N/10)/N)+0.5;
+H2=20*((length(H1)+1:N/5)/N-0.1)+0.5;
+H3=exp(-1/50*((0.4*N:0.5*N)-0.4*N));
+//H3=0.5*ones(1:N/10)
+H=[H1 H2 ones(1:0.08*N+1) 0.1*ones(1:0.02*N+1) ones(1:0.1*N) H3 zeros(length(H1)+length(H2)+0.2*N+1+length(H3):1024)];
+fs=linspace(0,1.0,N);
+X=fft_2(x);
+y=ifft_2(X.*H);
+
+Y=fft_2(y);
+X=fft_2(x);
+D=X./(Y+1e-25);
+//D(257)=D(256);
+
+XR=Y.*D;
+xr=abs(ifft_2(XR));
+//M=32;
+d=ifft_2(D);
+dc=fftshift(d);
+dt=dc(N/2-M/2+1:N/2+M/2);
+w=windows_dsp2(M,5);
+dw_c=dt.*w;
+dw_p=[dw_c zeros(M+1:N)]
+xr2=abs(conv(y,dw_c));
+
+subplot(321);
+plot(x);
+a=gca()
+a.data_bounds=[0,-1,0;N,2,0];
+subplot(322)
+plot(y,'r');
+a=gca()
+a.data_bounds=[0,-1,0;N,2,0];
+subplot(323);
+plot(abs(H));
+a=gca()
+a.data_bounds=[0,0,0;N/2,3,0];
+subplot(324)
+plot(abs(D))
+a=gca()
+a.data_bounds=[0,0,0;N/2,11,0];
+subplot(325);
+plot(xr,'r');
+a=gca()
+a.data_bounds=[0,-1,0;N,2,0];
+subplot(326)
+plot(xr2,'g')
+a=gca()
+//a.data_bounds=[0,-1,0;N,2,0];
+endfunction
