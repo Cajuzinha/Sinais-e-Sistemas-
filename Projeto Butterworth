@@ -1,0 +1,56 @@
+function [Hs,Hq1,Hq2]=ProjetoButterworth(ordem)
+
+N=1024
+fc=1000/(2*%pi);
+wc=2*%pi*fc;
+fs=2500/(2*%pi);
+
+// Projeto a partir de um filtro analógico
+subplot(221)
+[Hs,poles,zers,gain]=analpf(ordem,"butt",[0.0 0.0],wc)
+z=poly(0,'z');
+//nopre_warp=2*fs
+pre_warp=(2*%pi*fc)/tan(%pi*fc/fs)
+Hz=horner(Hs,pre_warp*((z-1)/(z+1)))
+[Hf,ff]=calc_Hw(Hz,N)
+plot(fs*ff,abs(Hf),'bk');
+legend("projeto analógico");
+q=poly(0,'q');
+Hq1=horner(Hz,1/q)
+num=Hq1(2)
+den=Hq1(3)
+a=coeff(Hq1(3))
+num=num/a(1)
+den=den/a(1)
+Hq1=num/den
+
+// Projeto digital 
+subplot(222)
+Hz2=iir(ordem,"lp","butt",[fc/fs 0],[0.05 0]);
+[Hf2,ff2]=calc_Hw(Hz2,N)
+plot(fs*ff2,abs(Hf2),'r'); 
+legend("projeto iir");
+Hq2=horner(Hz2,1/q)
+
+
+subplot(223)
+angle = linspace(0, 2*%pi, N);
+x = 2*%pi*fc*cos(angle);
+y = 2*%pi*fc*sin(angle);
+// poles X(-2) zeros 0(-9)
+plot2d(real(poles),imag(poles),-2)
+plot2d(x,y);
+a=gca();
+a.data_bounds=[-1.1*wc,-1.1*wc,0;1.1*wc,1.1*wc,0];
+
+ [phi, db_A] = phasemag(Hf+1e-20,'m');
+// subplot(223);
+// plot(f,db_A);
+// a=gca()
+// a.data_bounds=[0,-100,0;0.5,5,0];
+
+ subplot(224);
+ plot(fs*ff,phi);
+
+
+endfunction
