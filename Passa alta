@@ -1,0 +1,65 @@
+function plot_passa_altas()
+   
+   clf
+   N=length(temp);
+   Na=65;
+   Nb=129;
+   sample_rate=12; // fs = 12 amostras/ano
+   fs=sample_rate*(0:N-1)/N;  
+   // sinc_filter(M,tipo,fc) tipo=4=blackman
+   h5a=sinc_filter_hp2(Na,2,0.5/12);   // frequencia 0.5/ano, ciclos menores que 2 anos
+   h1a=sinc_filter_hp2(Na,2,2.0/12);   // frequencia 2.0/ano, ciclos menores que 6 meses
+   h1b=sinc_filter_hp2(Nb,2,2.0/12);  // frequencia 2.0/ano, ciclos maiores que 6 meses 
+   h5a_p=[h5a zeros(Na+1:N)]; // zero-padding para melhor resolução na fft
+   h1a_p=[h1a zeros(Na+1:N)];
+   h1b_p=[h1b zeros(Nb+1:N)];
+   H5a=fft(h5a_p); 
+   H1a=fft(h1a_p);
+   H1b=fft(h1b_p);
+   
+   subplot(321)    // FFT dos 3 kernels
+   plot(fs,abs(H5a),'b')
+   plot(fs,abs(H1a),'r')
+   plot(fs,abs(H1b),'bk')
+   a=gca();
+   a.data_bounds=[0,0,0;3,1.1,0];
+  
+   subplot(322)   // FFT dos 3 kernels em DB
+   plot(fs,20*log(abs(H5a)+1e-25),'b')
+   plot(fs,20*log(abs(H1a)+1e-25),'r')
+   plot(fs,20*log(abs(H1b)+1e-25),'bk')
+   a=gca();
+   a.data_bounds=[0,-250,0;3,0.1,0];
+
+   subplot(323)  // Convolução dos Kernels  com o sinal de entrada
+   temp_h5a=LinearConv(temp,h5a);
+   temp_h1a=LinearConv(temp,h1a);
+   temp_h1b=LinearConv(temp,h1b);
+   plot(temp_h5a,'b')
+   plot(temp_h1a,'r')
+   plot(temp_h1b,'bk')
+   
+   subplot(324) // Convolução dos Kernels com bounds
+   data_a=data-(Na/2)/sample_rate
+   data_b=data-(Nb/2)/sample_rate
+   plot(data_a,temp_h5a,'b')
+   plot(data_a,temp_h1a,'r')
+   plot(data_b,temp_h1b,'bk')
+   a=gca();
+   a.data_bounds=[1963,-4,0;2014,4,0];
+ 
+   subplot(325) // Zoom início da série
+   plot(data_a,temp_h5a,'b')
+   plot(data_a,temp_h1a,'r')
+   plot(data_b,temp_h1b,'bk')
+   a=gca();
+   a.data_bounds=[1963,-4,0;1971,4,0];
+   
+   subplot(326) // Zoom divergência
+   plot(data_a,temp_h5a,'b')
+   plot(data_a,temp_h1a,'r')
+   plot(data_b,temp_h1b,'bk')
+   a=gca();
+   a.data_bounds=[1996,-4,0;2000,4,0];
+   
+endfunction
