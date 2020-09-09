@@ -1,0 +1,81 @@
+function ProjetoRedeNeural(Hin,ordem)
+  //   Hin=[ ones(1:20) 2*ones(21:50) 3*ones(51:75) zeros(76:128)]
+    function MAG=RespostaFrequencia(a,b)
+       y(1:N)=0
+       x(1:N)=0
+       x(ordem+4)=1
+       for i=ordem+4:N
+           for j=1:ordem
+               y(i)=y(i)+b(j)*x(i-j)-a(j)*y(i-j)
+           end
+       end
+       MAG=abs(fft(y))
+    endfunction
+   
+    function er=CalculaErro (a,b)
+       MAG=RespostaFrequencia(a,b);
+       er=0
+       for i=1:N/2
+           er=er+(MAG(i)-Hin(i))^2
+       end
+       er=sqrt(er/(N/2+1))
+    endfunction
+ 
+    function [da,db]=CalculaDerivadas(a,b,delta)
+       da(1:ordem)=0
+       db(1:ordem)=0
+       erro_ref=CalculaErro(a,b)
+       for p=2:ordem
+           a(p)=a(p)+delta
+           da(p)=(CalculaErro(a,b)-erro_ref)/delta
+           a(p)=a(p)-delta
+       end
+       for p=1:ordem
+           b(p)=b(p)+delta
+           db(p)=(CalculaErro(a,b)-erro_ref)/delta
+           b(p)=b(p)-delta
+       end
+    endfunction
+   
+    //Programa Principal
+   
+    N=2*length(Hin)
+    fs=linspace(0,0.5,N/2);
+ 
+    delta=0.00001
+    mu=0.2
+    a(1:ordem)=0
+    b(1:ordem)=0
+    b(1)=1;
+    MAG=RespostaFrequencia(a,b);
+    
+    plot(fs,Hin,'bk')
+    plot(fs,MAG(1:N/2),'r')
+    
+    k=500;
+    erro(1:k+1)=0
+    erro(1)=CalculaErro(a,b);
+    for i=1:k
+        [da,db]=CalculaDerivadas(a,b,delta)
+        for p=1:ordem
+            a(p)=a(p)-da(p)*mu
+            b(p)=b(p)-db(p)*mu
+        end
+        erro(i+1)=CalculaErro(a,b);
+        if(erro(i+1)>erro(i)) then
+            mu=mu/2
+        end
+        
+        MAG=RespostaFrequencia(a,b);
+        delete()
+        plot(fs,MAG(1:N/2),'r')
+        printf("i=%d  mu=%f erro=%f\n",i,mu,erro(i))
+        
+    end    
+    MAG=RespostaFrequencia(a,b);
+    plot(fs,MAG(1:N/2),'r')
+    legend("prototipo","ordem="+string(ordem));
+    for p=1:ordem
+         printf("a(%d)=%f   b(%d)=%f\n",p,a(p),p,b(p))
+    end
+endfunction   
