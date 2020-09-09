@@ -1,0 +1,29 @@
+function Hq=Inv_Impulso2 (f0,Q,fs)
+
+    N=1024;
+    T=1/fs;
+    s=poly(0,'s');
+    z=poly(0,'z');
+    q=poly(0,'q');
+  
+  //  w0 = sqrt(17410.145)
+  //  Q=w0/137.94536;
+    w0 =2*%pi*f0;
+    a  = w0/(2*Q);
+    b  = sqrt(w0^2-a^2);
+   
+    Hs=w0^2/(s^2+(2*a)*s+w0^2);
+    [Hw fw]=Resposta_Frequencia_Hs(Hs,3*f0,1024);   
+
+    num=(w0^2/b)*exp(-a*T)*sin(b*T)*q
+    den=1-(2*exp(-a*T)*cos(b*T))*q+exp(-(2*a)*T)*q^2;
+    Hq=num/den;
+    Hz=horner(Hq,1/z);
+    [Hi,fi]=Resposta_Frequencia_Hz(Hz,N);
+    
+    plot(fw,abs(Hw),'bk');
+    plot(fi/T,abs(T*Hi),'r');
+    
+    legend("Filtro Analógico","Filtro Digital fs="+string(fs));
+
+endfunction
