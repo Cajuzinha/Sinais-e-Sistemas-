@@ -1,0 +1,39 @@
+function CustomFIR(M)
+clf
+
+// Resposta em Frequencia Desejada H
+N=1024
+H1=0.3*sin(30*%pi*(1:N/10)/N)+0.5;
+H2=20*((length(H1)+1:N/5)/N-0.1)+0.5;
+H3=exp(-1/20*((0.4*N:0.5*N)-0.4*N))
+H=[H1 H2 ones(1:0.08*N+1) 0.1*ones(1:0.02*N+1) ones(1:0.1*N) H3 zeros(length(H1)+length(H2)+0.2*N+1+length(H3):N)]
+
+
+
+subplot(221)
+fs=linspace(0,1.0,N);
+plot(fs,H)
+a=gca()
+a.data_bounds=[0,0,0;0.5,3,0];
+
+// resposta ao impulso h do filtro  H
+subplot(222)
+h=ifft(H)
+plot(fftshift(h))
+
+// Truncar h em um kernel dw_c de largura M
+h_c=fftshift(h)
+h_t=h_c(N/2-M/2+1:N/2+M/2)
+w=windows_dsp2(M,2);
+dw_c=h_t.*w;
+dw_p=[dw_c zeros(length(dw_c)+1:N)]
+DW=fft(dw_p)
+subplot(223)
+plot(dw_c)
+
+//Calcular a resposta em frequencia DW do kernel dw_c
+subplot(224)
+plot(fs,abs(DW))
+a=gca()
+a.data_bounds=[0,0,0;0.5,3,0];
+endfunction
