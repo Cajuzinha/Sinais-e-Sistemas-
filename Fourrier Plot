@@ -1,0 +1,74 @@
+// [A,B]=fourierplot(t1,t2,n)
+// t1 - início do período
+// t2 - fim do período
+// n - númro de harmônicos para a síntese
+
+function [A1,B1]=fourierplot(t1,t2,n)
+    
+    function y=f(t)
+       // if   (t<0) y =-1;
+       // else       y =+1;
+       // end
+       
+       y=t/2;
+    endfunction
+    
+    clf();
+    T=(t2-t1)
+    wo = 2*%pi/T
+    
+    subplot(4,1,1)
+    t=linspace(t1,t2,100)
+    for(i=1:length(t))
+        y1(i)=f(t(i))
+    end
+    plot2d3(t,y1);
+    
+    A0=1/T*intg(t1,t2,f,0.000000001);
+    if(abs(A0)<1e-10)
+        A0=0;
+    end;
+    for i=1:n
+        
+       function y1=f1(t)
+           y1=f(t)*cos(i*wo*t);
+       endfunction
+    
+       function y2=f2(t)
+           y2=f(t)*sin(i*wo*t);
+       endfunction 
+         
+        A(i)=2/T*intg(t1,t2,f1,0.000000001);
+        if(abs(A(i))<1e-10) 
+            A(i)=0; 
+        end;
+        B(i)=2/T*intg(t1,t2,f2,0.000000001);
+        if(abs(B(i))<1e-10) 
+            B(i)=0 
+        end;
+    end
+    
+    function harmonico=sintese(t)
+        harmonico=A0;
+        for i=1:n
+            harmonico=harmonico+A(i)*cos(i*wo*t)+B(i)*sin(i*wo*t);
+        end
+    endfunction
+
+    h=[0:1:n]
+    tp=t1:0.001:t2
+    plot(tp,sintese(tp),'r')
+    t=t1-2*T:0.001:t2+2*T;
+    subplot(4,1,2)
+    plot(t,sintese(t),'bk');
+    plot(tp,sintese(tp),'r')
+    subplot(4,1,3)
+    A1 = A';
+    A1= [A0 A1]
+    bar(h,A1)
+    subplot(4,1,4)
+    B1 = B'
+    B1=[0 B1]
+    bar(h,B1)
+    
+endfunction
