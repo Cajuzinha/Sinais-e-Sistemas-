@@ -1,0 +1,39 @@
+function plot_passa_banda(fc,bw,M)
+    
+   //plot_passa_banda(1,0.2,280)
+   clf;
+   N=length(temp);
+   sample_rate=12; // 12 amostras/ano
+   fs=sample_rate*(0:N-1)/N;  // sinc_filter(M,tipo,fc) tipo=2 hanning
+   
+   h=sinc_filter_bp2(M,2,(fc-bw/2)/sample_rate,(fc+bw/2)/sample_rate);    // frequencia (fc-bw)/ano; 
+   
+   
+   h_p=[h zeros(M+1:N)]; // zero-padding 
+   H=fft(h_p); 
+   
+   subplot(221)    // FFT do 3 kernel
+   plot(fs,abs(H),'b')
+   a=gca();
+   a.data_bounds=[0,0,0;6,1.1,0];
+   legend("BP fc=1 ")
+
+   subplot(222)   // FFT do 3 kernel em DB
+   plot(fs,20*log(abs(H)+1e-25),'b')
+   a=gca();
+   a.data_bounds=[0,-250,0;6,0.1,0];
+   legend("BP DB fc=1")
+   
+   subplot(223)  // Convolução do Kernel  com o sinal de entrada
+   temp_h=LinearConv(temp,h);
+   data_h=data-(M/2)/sample_rate
+   plot(data_h,temp_h,'b')
+   a=gca();
+   a.data_bounds=[1963,-2,0;2014,2,0];
+   
+   subplot(224) // Convolução do Kernel com bounds
+   plot(data_h,temp_h,'b')
+   a=gca();
+   a.data_bounds=[1990,-1.5,0;2000,1.5,0];
+ 
+endfunction
