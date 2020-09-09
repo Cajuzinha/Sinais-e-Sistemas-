@@ -1,0 +1,19 @@
+function biquad(Q);
+    
+    s=poly(0,'s');
+    H=1/(s^2+1/Q*s+1);
+    fc=1
+    wc=2*%pi*fc;
+    num=horner(H(2),s/wc);
+    den=horner(H(3),s/wc);
+    Hs=num./den;
+    [Hw fw] = Resposta_Frequencia_Hs(Hs,3*fc,1024);
+    subplot(2,1,1);
+    plot2d(fw,abs(Hw))
+    title("Resposta em Frequencia Biquad Q=" + string(Q));
+    subplot(2,1,2);
+    teta=acos(1/(2*Q))*180/%pi;
+    plot_polos_zeros(wc,Hs)
+    title("Polos biquad Q=" + string(Q)+" Angulo= "+string(int(teta))+"graus");
+    
+endfunction
