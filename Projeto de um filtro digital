@@ -1,0 +1,62 @@
+function Hq2=ProjetoFiltroDigital2(tipo,design,ordem,fp1,fp2)
+
+  // tipo 'lp' , 'hp' , 'bp' ou 'sb'
+  // design 'butt' , 'cheb1' , 'cheb2' ou 'ellip'
+  // ordem = ordem do filtro
+  // fp1 - frequencia de corte digital para lp, hp, bp e sb
+  // fp2 - 2a frequencia de corte digital para bp e sb
+  
+  N=1024
+// 1a Frequencia de corte digital rad/amostra 
+  wp1=2*%pi*fp1;
+// 2a Frequencia de corte digital rad/amostra para bp e sb 
+  wp2=2*%pi*fp2;
+  
+  // Projeto iir digital lp, sempre em 0.2
+  fp=0.2;
+  wp=2*%pi*fp;  
+  Hzlp=iir(ordem,'lp',design,[fp 0],[0.05 0.05]);
+  [Hf1,f1]=Resposta_Frequencia_Hz(Hzlp,N);
+  subplot(211);
+  plot(f1,abs(Hf1),'r'); 
+  a=gca()
+  a.data_bounds=[0,-0.1,0;0.5,1.3,0];
+  legend("Projeto iir lp");
+   
+  // transformações de Frequencia em z para o tipo e fc desejados
+   z=poly(0,'z');
+   if tipo=='lp' then
+     alfa=sin((wp-wp1)/2)/sin((wp+wp1)/2);
+     num=horner(Hzlp(2),(z-alfa)/(1-alfa*z));
+     den=horner(Hzlp(3),(z-alfa)/(1-alfa*z));
+   elseif tipo=='hp' then
+     alfa=-cos((wp+wp1)/2)/cos((wp-wp1)/2);
+     num=horner(Hzlp(2),-(z+alfa)/(alfa*z+1));
+     den=horner(Hzlp(3),-(z+alfa)/(alfa*z+1));
+   elseif tipo=='sb' then
+     alfa=cos((wp2+wp1)/2)/cos((wp2-wp1)/2);
+     k=tan((wp2-wp1)/2)*tan(wp/2);
+     alfa1=-2*alfa/(k+1);
+     alfa2=(1-k)/(1+k);
+     num=horner(Hzlp(2),(z^2+alfa1*z+alfa2)/(alfa2*z^2+alfa1*z+1));
+     den=horner(Hzlp(3),(z^2+alfa1*z+alfa2)/(alfa2*z^2+alfa1*z+1));
+   elseif tipo=='bp' then
+     alfa=cos((wp2+wp1)/2)/cos((wp2-wp1)/2);
+     k=cotg((wp2-wp1)/2)*tan(wp/2);
+     alfa1=-2*alfa*k/(k+1);
+     alfa2=(k-1)/(k+1);
+     num=horner(Hzlp(2),-(z^2+alfa1*z+alfa2)/(alfa2*z^2+alfa1*z+1));
+     den=horner(Hzlp(3),-(z^2+alfa1*z+alfa2)/(alfa2*z^2+alfa1*z+1));
+   end  
+   Hz=num./den;
+   [Hf2,f2]=Resposta_Frequencia_Hz(Hz,N);
+   subplot(212);
+   plot(f2,abs(Hf2),'r'); 
+   a=gca()
+   a.data_bounds=[0,-0.1,0;0.5,1.3,0];
+   legend("Transformação Freq para "+tipo);
+   q=poly(0,'q');
+   num=horner(num,1/q);
+   den=horner(den,1/q);
+   Hq2=num./den
+endfunction
