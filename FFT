@@ -1,0 +1,13 @@
+function X = fft_2(x)
+    N = length(x);
+    if N == 1
+        X = x;
+    else
+        N2 = N/2;
+        X_par = fft_2(x(1:2:N-1));
+        X_impar = fft_2(x(2:2:N));
+        W = exp(-2 * %pi * %i / N) .^ (0:N2-1);
+        X_impar = W .* X_impar;
+        X = [ X_par + X_impar , X_par - X_impar ];
+    end
+endfunction
